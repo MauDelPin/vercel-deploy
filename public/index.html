@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluador de Propiedades - Real Estate PRO</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1a3a52;
+            --secondary: #e8751a;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --border: #bdc3c7;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, #2c5aa0 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: var(--primary);
+            border-bottom: 3px solid var(--secondary);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(232, 117, 26, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .ambiente-card {
+            background: #f8f9fa;
+            border-left: 4px solid var(--secondary);
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .ambiente-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .ambiente-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .btn-remove {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.3s;
+        }
+
+        .btn-remove:hover {
+            background: #c0392b;
+        }
+
+        .rating-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .rating-label {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: var(--dark);
+            min-width: 80px;
+        }
+
+        .rating-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .rating-btn {
+            width: 45px;
+            height: 45px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1em;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .rating-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .rating-btn.active {
+            color: white;
+            border-color: transparent;
+        }
+
+        .rating-1.active { background: var(--danger); }
+        .rating-2.active { background: #e67e22; }
+        .rating-3.active { background: var(--warning); }
+        .rating-4.active { background: #3498db; }
+        .rating-5.active { background: var(--success); }
+
+        .description textarea {
+            min-height: 60px;
+        }
+
+        .costo-custom {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+
+        .costo-custom label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .costo-custom input {
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .buttons-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-primary:hover {
+            background: #0f2a3d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(26, 58, 82, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-secondary:hover {
+            background: #d16607;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(232, 117, 26, 0.3);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+
+        .dashboard {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .dashboard-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .dashboard-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: var(--secondary);
+            margin: 10px 0;
+        }
+
+        .dashboard-label {
+            color: var(--dark);
+            font-size: 0.95em;
+        }
+
+        .calificacion-global {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .calificacion-global h3 {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+        }
+
+        .rating-global-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .rating-global-btn {
+            width: 60px;
+            height: 60px;
+            border: 3px solid white;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.2em;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .rating-global-btn:hover {
+            transform: scale(1.1);
+            background: rgba(255,255,255,0.3);
+        }
+
+        .rating-global-btn.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .nota-global {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .nota-global textarea {
+            background: rgba(255,255,255,0.9);
+            color: var(--dark);
+            border: none;
+            padding: 12px;
+            border-radius: 4px;
+            min-height: 80px;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .info-badge {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            margin: 10px 0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            .form-row, .form-row-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .rating-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 0.85em;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .rating-global-btn {
+                width: 50px;
+                height: 50px;
+            }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .costo-section {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2em;
+        }
+
+        .loading.active {
+            display: flex;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-right: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            background: #27ae60;
+            color: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <div>Guardando evaluación...</div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🏠 Evaluador de Propiedades PRO</h1>
+            <p>Real Estate - Sistema de Análisis Profesional</p>
+        </div>
+
+        <div class="content">
+            <div class="success-message" id="successMessage">
+                ✅ Evaluación guardada exitosamente en el servidor
+            </div>
+
+            <!-- DATOS BÁSICOS -->
+            <div class="section">
+                <h2 class="section-title">📍 Datos de la Propiedad</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tipo de Propiedad</label>
+                        <select id="tipoPropiedad">
+                            <option>Departamento</option>
+                            <option>Casa</option>
+                            <option>PH</option>
+                            <option>Local Comercial</option>
+                            <option>Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ubicación</label>
+                        <input type="text" id="ubicacion" placeholder="Barrio/Zona, Ciudad">
+                    </div>
+                </div>
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label>Precio de Compra (USD)</label>
+                        <input type="number" id="precioCompra" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Superficie (m²)</label>
+                        <input type="number" id="superficie" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Cliente</label>
+                        <input type="text" id="clienteInterno" placeholder="Nombre del cliente">
+                    </div>
+                </div>
+            </div>
+
+            <!-- CALIFICACIÓN GLOBAL CON NOTA -->
+            <div class="calificacion-global">
+                <h3>⭐ Calificación Global del Inmueble</h3>
+                <p style="font-size: 0.95em; margin-bottom: 15px; opacity: 0.9;">Basada en la experiencia y criterio profesional del rubro</p>
+                
+                <div class="rating-global-buttons" id="ratingGlobalContainer"></div>
+                
+                <div class="nota-global">
+                    <label style="color: white; font-weight: 600; display: block; margin-bottom: 10px;">
+                        💡 Justificación de la calificación:
+                    </label>
+                    <textarea id="notaGlobal" placeholder="Explica brevemente por qué asignaste esta calificación..."></textarea>
+                </div>
+            </div>
+
+            <!-- MATRIZ DE EVALUACIÓN -->
+            <div class="section">
+                <h2 class="section-title">🏠 Evaluación por Ambientes</h2>
+                
+                <div id="ambientesContainer"></div>
+
+                <div class="buttons-group">
+                    <button class="btn btn-secondary" onclick="abrirModalAgregarAmbiente()">+ Agregar Ambiente</button>
+                </div>
+            </div>
+
+            <!-- COSTO PRESUPUESTO -->
+            <div class="section">
+                <h2 class="section-title">💰 Presupuesto de Remodelación</h2>
+                <div class="costo-section">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Costo Estimado Automático (USD)</label>
+                            <input type="number" id="costoAutomatico" readonly placeholder="Se calcula automáticamente">
+                        </div>
+                        <div class="form-group">
+                            <label>Costo Manual/Personalizado (USD)</label>
+                            <input type="number" id="costoManual" placeholder="Ingresa el costo real de remodelación">
+                        </div>
+                    </div>
+                    <div class="info-badge">
+                        💡 Usa el costo manual si tienes un presupuesto más preciso.
+                    </div>
+                </div>
+            </div>
+
+            <!-- DASHBOARD -->
+            <div class="dashboard">
+                <h3 style="color: var(--primary); margin-bottom: 20px; font-size: 1.3em;">📊 Resumen Financiero</h3>
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <div class="dashboard-label">Inversión Total</div>
+                        <div class="dashboard-value" id="costoTotalDisplay">$0</div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="dashboard-label">Compra + Reforma</div>
+                        <div class="dashboard-value" id="costoTotalFinal">$0</div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="dashboard-label">Valor por m²</div>
+                        <div class="dashboard-value" id="valorM2">$0</div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="dashboard-label">Total Ambientes</div>
+                        <div class="dashboard-value" id="totalAmbientes">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLA RESUMEN -->
+            <div class="section">
+                <h2 class="section-title">📋 Detalle de Evaluaciones</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ambiente</th>
+                            <th>Calificación</th>
+                            <th>Costo</th>
+                            <th>Observaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaBody"></tbody>
+                </table>
+            </div>
+
+            <!-- BOTONES DE ACCIÓN -->
+            <div class="buttons-group">
+                <button class="btn btn-success" onclick="generarPDFCliente()">📄 Generar Informe para Cliente</button>
+                <button class="btn btn-primary" onclick="exportarExcel()">📊 Exportar a Excel</button>
+                <button class="btn btn-secondary" onclick="guardarEnServidor()">💾 Guardar en Servidor</button>
+                <button class="btn btn-secondary" onclick="limpiarDatos()" style="background: #95a5a6;">🔄 Limpiar Todo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AGREGAR AMBIENTE -->
+    <div id="modalAmbiente" class="modal">
+        <div class="modal-content">
+            <h2>Nuevo Ambiente</h2>
+            <div class="form-group">
+                <label>Nombre del Ambiente</label>
+                <select id="nuevoAmbiente">
+                    <option value="">-- Seleccionar --</option>
+                    <option value="Cocina">Cocina</option>
+                    <option value="Baño Principal">Baño Principal</option>
+                    <option value="Baño Secundario">Baño Secundario</option>
+                    <option value="Dormitorio Principal">Dormitorio Principal</option>
+                    <option value="Dormitorio 2">Dormitorio 2</option>
+                    <option value="Dormitorio 3">Dormitorio 3</option>
+                    <option value="Living">Living</option>
+                    <option value="Comedor">Comedor</option>
+                    <option value="Entrada">Entrada</option>
+                    <option value="Patio/Jardín">Patio/Jardín</option>
+                    <option value="Fachada">Fachada</option>
+                    <option value="Instalaciones Eléctricas">Instalaciones Eléctricas</option>
+                    <option value="Instalaciones de Gas">Instalaciones de Gas</option>
+                    <option value="Plomería">Plomería</option>
+                    <option value="Techos">Techos</option>
+                    <option value="Pisos">Pisos</option>
+                    <option value="Paredes">Paredes</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>O escribe un ambiente personalizado:</label>
+                <input type="text" id="ambientePersonalizado" placeholder="Ej: Terraza">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="agregarAmbiente()">Agregar</button>
+                <button class="btn btn-primary" onclick="cerrarModalAmbiente()" style="background: #95a5a6;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000'; // Cambiar a tu URL en producción
+
+        // TABLA DE COSTOS
+        const tablaCostos = {
+            'Cocina': {
+                1: { min: 5000, max: 8000 },
+                2: { min: 3000, max: 5000 },
+                3: { min: 1500, max: 3000 },
+                4: { min: 300, max: 1500 },
+                5: { min: 0, max: 300 }
+            },
+            'Baño Principal': {
+                1: { min: 4000, max: 7000 },
+                2: { min: 2500, max: 4000 },
+                3: { min: 1000, max: 2500 },
+                4: { min: 200, max: 1000 },
+                5: { min: 0, max: 200 }
+            },
+            'Baño Secundario': {
+                1: { min: 2500, max: 5000 },
+                2: { min: 1500, max: 2500 },
+                3: { min: 600, max: 1500 },
+                4: { min: 100, max: 600 },
+                5: { min: 0, max: 100 }
+            },
+            'Dormitorio Principal': {
+                1: { min: 2000, max: 4000 },
+                2: { min: 1000, max: 2000 },
+                3: { min: 300, max: 1000 },
+                4: { min: 50, max: 300 },
+                5: { min: 0, max: 50 }
+            },
+            'Dormitorio 2': {
+                1: { min: 1500, max: 3000 },
+                2: { min: 800, max: 1500 },
+                3: { min: 250, max: 800 },
+                4: { min: 50, max: 250 },
+                5: { min: 0, max: 50 }
+            },
+            'Dormitorio 3': {
+                1: { min: 1500, max: 3000 },
+                2: { min: 800, max: 1500 },
+                3: { min: 250, max: 800 },
+                4: { min: 50, max: 250 },
+                5: { min: 0, max: 50 }
+            },
+            'Living': {
+                1: { min: 2500, max: 5000 },
+                2: { min: 1200, max: 2500 },
+                3: { min: 500, max: 1200 },
+                4: { min: 100, max: 500 },
+                5: { min: 0, max: 100 }
+            },
+            'Comedor': {
+                1: { min: 2000, max: 4000 },
+                2: { min: 1000, max: 2000 },
+                3: { min: 300, max: 1000 },
+                4: { min: 50, max: 300 },
+                5: { min: 0, max: 50 }
+            },
+            'Entrada': {
+                1: { min: 1000, max: 2500 },
+                2: { min: 600, max: 1000 },
+                3: { min: 200, max: 600 },
+                4: { min: 30, max: 200 },
+                5: { min: 0, max: 30 }
+            },
+            'Patio/Jardín': {
+                1: { min: 3000, max: 6000 },
+                2: { min: 1500, max: 3000 },
+                3: { min: 600, max: 1500 },
+                4: { min: 100, max: 600 },
+                5: { min: 0, max: 100 }
+            },
+            'Fachada': {
+                1: { min: 6000, max: 12000 },
+                2: { min: 3000, max: 6000 },
+                3: { min: 1200, max: 3000 },
+                4: { min: 300, max: 1200 },
+                5: { min: 0, max: 300 }
+            },
+            'Instalaciones Eléctricas': {
+                1: { min: 5000, max: 10000 },
+                2: { min: 2500, max: 5000 },
+                3: { min: 1000, max: 2500 },
+                4: { min: 200, max: 1000 },
+                5: { min: 0, max: 200 }
+            },
+            'Instalaciones de Gas': {
+                1: { min: 3000, max: 6000 },
+                2: { min: 1500, max: 3000 },
+                3: { min: 600, max: 1500 },
+                4: { min: 100, max: 600 },
+                5: { min: 0, max: 100 }
+            },
+            'Plomería': {
+                1: { min: 4000, max: 8000 },
+                2: { min: 2000, max: 4000 },
+                3: { min: 800, max: 2000 },
+                4: { min: 150, max: 800 },
+                5: { min: 0, max: 150 }
+            },
+            'Techos': {
+                1: { min: 8000, max: 16000 },
+                2: { min: 4000, max: 8000 },
+                3: { min: 1500, max: 4000 },
+                4: { min: 300, max: 1500 },
+                5: { min: 0, max: 300 }
+            },
+            'Pisos': {
+                1: { min: 5000, max: 10000 },
+                2: { min: 2500, max: 5000 },
+                3: { min: 1000, max: 2500 },
+                4: { min: 200, max: 1000 },
+                5: { min: 0, max: 200 }
+            },
+            'Paredes': {
+                1: { min: 4000, max: 8000 },
+                2: { min: 2000, max: 4000 },
+                3: { min: 800, max: 2000 },
+                4: { min: 150, max: 800 },
+                5: { min: 0, max: 150 }
+            }
+        };
+
+        let ambientes = [];
+        let idCounter = 0;
+        let ratingGlobal = 0;
+
+        function inicializar() {
+            const ambientesDefault = ['Cocina', 'Baño Principal', 'Dormitorio Principal', 'Living', 'Fachada'];
+            ambientesDefault.forEach(nombre => {
+                agregarAmbienteDirecto(nombre);
+            });
+            
+            // Crear botones de calificación global
+            const container = document.getElementById('ratingGlobalContainer');
+            for (let i = 1; i <= 5; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'rating-global-btn';
+                btn.id = `ratingGlobal${i}`;
+                btn.textContent = i;
+                btn.onclick = () => actualizarRatingGlobal(i);
+                container.appendChild(btn);
+            }
+            
+            // Event listeners
+            document.getElementById('costoManual').addEventListener('change', actualizarDashboard);
+            document.getElementById('precioCompra').addEventListener('change', actualizarDashboard);
+            document.getElementById('superficie').addEventListener('change', actualizarDashboard);
+        }
+
+        function agregarAmbienteDirecto(nombre) {
+            const id = idCounter++;
+            const nuevoAmbiente = {
+                id: id,
+                nombre: nombre,
+                calificacion: 3,
+                descripcion: '',
+                costoCustom: 0
+            };
+            ambientes.push(nuevoAmbiente);
+            renderizar();
+        }
+
+        function abrirModalAgregarAmbiente() {
+            document.getElementById('modalAmbiente').classList.add('active');
+        }
+
+        function cerrarModalAmbiente() {
+            document.getElementById('modalAmbiente').classList.remove('active');
+            document.getElementById('nuevoAmbiente').value = '';
+            document.getElementById('ambientePersonalizado').value = '';
+        }
+
+        function agregarAmbiente() {
+            const selectAmbiente = document.getElementById('nuevoAmbiente').value;
+            const ambientePersonalizado = document.getElementById('ambientePersonalizado').value;
+            
+            let nombre = selectAmbiente || ambientePersonalizado;
+            
+            if (!nombre.trim()) {
+                alert('Por favor selecciona o escribe un ambiente');
+                return;
+            }
+
+            if (ambientes.some(a => a.nombre === nombre)) {
+                alert('Este ambiente ya ha sido agregado');
+                return;
+            }
+
+            agregarAmbienteDirecto(nombre);
+            cerrarModalAmbiente();
+        }
+
+        function actualizarCalificacion(id, calificacion) {
+            const ambiente = ambientes.find(a => a.id === id);
+            if (ambiente) {
+                ambiente.calificacion = parseInt(calificacion);
+                renderizar();
+            }
+        }
+
+        function actualizarDescripcion(id, texto) {
+            const ambiente = ambientes.find(a => a.id === id);
+            if (ambiente) {
+                ambiente.descripcion = texto;
+            }
+        }
+
+        function actualizarCostoCustom(id, valor) {
+            const ambiente = ambientes.find(a => a.id === id);
+            if (ambiente) {
+                ambiente.costoCustom = parseFloat(valor) || 0;
+                renderizar();
+            }
+        }
+
+        function actualizarRatingGlobal(valor) {
+            ratingGlobal = valor;
+            for (let i = 1; i <= 5; i++) {
+                const btn = document.getElementById(`ratingGlobal${i}`);
+                if (i === valor) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            }
+        }
+
+        function eliminarAmbiente(id) {
+            if (confirm('¿Eliminar este ambiente?')) {
+                ambientes = ambientes.filter(a => a.id !== id);
+                renderizar();
+            }
+        }
+
+        function calcularCosto(nombre, calificacion) {
+            if (!tablaCostos[nombre]) {
+                return { min: 500 * (6 - calificacion), max: 1500 * (6 - calificacion) };
+            }
+            
+            const rango = tablaCostos[nombre][calificacion];
+            return rango || { min: 0, max: 0 };
+        }
+
+        function formatearMoneda(valor) {
+            return new Intl.NumberFormat('es-AR', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(valor);
+        }
+
+        function renderizar() {
+            const container = document.getElementById('ambientesContainer');
+            container.innerHTML = '';
+
+            ambientes.forEach(ambiente => {
+                const costo = calcularCosto(ambiente.nombre, ambiente.calificacion);
+                const costoPromedio = Math.round((costo.min + costo.max) / 2);
+                const costoFinal = ambiente.costoCustom > 0 ? ambiente.costoCustom : costoPromedio;
+
+                const html = `
+                    <div class="ambiente-card">
+                        <div class="ambiente-header">
+                            <div class="ambiente-name">${ambiente.nombre}</div>
+                            <button class="btn-remove" onclick="eliminarAmbiente(${ambiente.id})">Eliminar</button>
+                        </div>
+
+                        <div class="rating-container">
+                            <div class="rating-label">Calificación:</div>
+                            <div class="rating-buttons">
+                                ${[1, 2, 3, 4, 5].map(num => `
+                                    <button class="rating-btn rating-${num} ${ambiente.calificacion === num ? 'active' : ''}" 
+                                        onclick="actualizarCalificacion(${ambiente.id}, ${num})">
+                                        ${num}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div class="description">
+                            <label style="font-size: 0.9em; color: var(--dark);">Observaciones:</label>
+                            <textarea placeholder="Describe los problemas o estado del ambiente..." 
+                                onchange="actualizarDescripcion(${ambiente.id}, this.value)">${ambiente.descripcion}</textarea>
+                        </div>
+
+                        <div class="costo-custom">
+                            <label>
+                                <strong>Costo Personalizado:</strong>
+                                <input type="number" value="${ambiente.costoCustom}" 
+                                    placeholder="Dejar en blanco para usar estimado (${formatearMoneda(costoPromedio)})"
+                                    onchange="actualizarCostoCustom(${ambiente.id}, this.value)">
+                            </label>
+                            <div style="margin-top: 10px; font-size: 0.9em; color: #666;">
+                                Estimado: ${formatearMoneda(costoPromedio)} | 
+                                <strong>Final: ${formatearMoneda(costoFinal)}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                container.innerHTML += html;
+            });
+
+            actualizarDashboard();
+            actualizarTabla();
+        }
+
+        function actualizarDashboard() {
+            const totalAmbientes = ambientes.length;
+            
+            const costoTotal = ambientes.reduce((sum, a) => {
+                if (a.costoCustom > 0) {
+                    return sum + a.costoCustom;
+                }
+                const costo = calcularCosto(a.nombre, a.calificacion);
+                return sum + Math.round((costo.min + costo.max) / 2);
+            }, 0);
+
+            const costoManual = parseFloat(document.getElementById('costoManual').value) || 0;
+            const costoFinal = costoManual > 0 ? costoManual : costoTotal;
+
+            const precioCompra = parseFloat(document.getElementById('precioCompra').value) || 0;
+            const superficie = parseFloat(document.getElementById('superficie').value) || 1;
+            const valorM2 = superficie > 0 ? Math.round((precioCompra + costoFinal) / superficie) : 0;
+
+            document.getElementById('costoAutomatico').value = costoTotal;
+            document.getElementById('costoTotalDisplay').textContent = formatearMoneda(costoFinal);
+            document.getElementById('costoTotalFinal').textContent = formatearMoneda(precioCompra + costoFinal);
+            document.getElementById('totalAmbientes').textContent = totalAmbientes;
+            document.getElementById('valorM2').textContent = formatearMoneda(valorM2);
+        }
+
+        function actualizarTabla() {
+            const tbody = document.getElementById('tablaBody');
+            tbody.innerHTML = '';
+
+            ambientes.forEach(ambiente => {
+                const costo = calcularCosto(ambiente.nombre, ambiente.calificacion);
+                const costoPromedio = Math.round((costo.min + costo.max) / 2);
+                const costoFinal = ambiente.costoCustom > 0 ? ambiente.costoCustom : costoPromedio;
+
+                const fila = `
+                    <tr>
+                        <td><strong>${ambiente.nombre}</strong></td>
+                        <td>${ambiente.calificacion}/5</td>
+                        <td>${formatearMoneda(costoFinal)}</td>
+                        <td>${ambiente.descripcion || '-'}</td>
+                    </tr>
+                `;
+
+                tbody.innerHTML += fila;
+            });
+        }
+
+        function generarPDFCliente() {
+            if (ambientes.length === 0) {
+                alert('Agrega ambientes para generar el informe');
+                return;
+            }
+
+            const tipoPropiedad = document.getElementById('tipoPropiedad').value;
+            const ubicacion = document.getElementById('ubicacion').value || 'Sin especificar';
+            const precioCompra = parseFloat(document.getElementById('precioCompra').value) || 0;
+            const superficie = parseFloat(document.getElementById('superficie').value) || 0;
+            const cliente = document.getElementById('clienteInterno').value || 'Cliente';
+            const notaGlobal = document.getElementById('notaGlobal').value;
+            const costoManual = parseFloat(document.getElementById('costoManual').value) || 0;
+            const costoAutomatico = parseFloat(document.getElementById('costoAutomatico').value) || 0;
+            const costoFinal = costoManual > 0 ? costoManual : costoAutomatico;
+
+            const calificacionPromedio = ambientes.length > 0 
+                ? (ambientes.reduce((sum, a) => sum + a.calificacion, 0) / ambientes.length).toFixed(1)
+                : 0;
+
+            const altaPrioridad = ambientes.filter(a => a.calificacion <= 2).length;
+            const mediaPrioridad = ambientes.filter(a => a.calificacion === 3).length;
+            const bajaPrioridad = ambientes.filter(a => a.calificacion >= 4).length;
+
+            let recomendacion = '🟢 OPORTUNIDAD DE COMPRA';
+            let recomendacionColor = '#27ae60';
+            let recomendacionTexto = 'La propiedad presenta un estado aceptable con inversiones moderadas. El potencial de valorización es bueno una vez ejecutadas las mejoras principales.';
+
+            if (calificacionPromedio >= 3.5) {
+                recomendacion = '🟢 OPORTUNIDAD DE COMPRA';
+                recomendacionColor = '#27ae60';
+                recomendacionTexto = 'La propiedad presenta un estado aceptable con inversiones moderadas. El potencial de valorización es bueno una vez ejecutadas las mejoras principales.';
+            } else if (calificacionPromedio >= 2.5) {
+                recomendacion = '🟡 RECOMENDAMOS NEGOCIAR';
+                recomendacionColor = '#f39c12';
+                recomendacionTexto = 'La propiedad requiere inversiones significativas. Se recomienda renegociar el precio de compra para garantizar rentabilidad del proyecto.';
+            } else {
+                recomendacion = '🔴 NO RECOMENDABLE EN ESTAS CONDICIONES';
+                recomendacionColor = '#e74c3c';
+                recomendacionTexto = 'Las inversiones necesarias son muy altas respecto al valor de la propiedad. Se sugiere descartar esta opción o esperar mejor oportunidad.';
+            }
+
+            let htmlPDF = `
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <style>
+                        body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.7; color: #333; }
+                        .header { background: linear-gradient(135deg, #1a3a52 0%, #2c5aa0 100%); color: white; padding: 50px 40px; text-align: center; }
+                        .header h1 { margin: 0; font-size: 2.8em; font-weight: 700; }
+                        .header p { margin: 10px 0 0 0; font-size: 1.2em; opacity: 0.95; }
+                        .content { padding: 50px 40px; }
+                        .section-title { color: #1a3a52; border-bottom: 4px solid #e8751a; padding-bottom: 15px; margin-top: 40px; margin-bottom: 25px; font-size: 1.6em; font-weight: 600; }
+                        .resumen { background: #f8f9fa; padding: 25px; border-radius: 8px; margin: 20px 0; }
+                        .resumen-item { margin: 12px 0; font-size: 1.05em; }
+                        .resumen-label { color: #666; font-weight: 500; }
+                        .resumen-valor { color: #e8751a; font-weight: 700; font-size: 1.1em; }
+                        table { width: 100%; border-collapse: collapse; margin: 25px 0; }
+                        th { background: #1a3a52; color: white; padding: 14px; text-align: left; font-weight: 600; }
+                        td { padding: 12px 14px; border-bottom: 1px solid #ddd; }
+                        tr:nth-child(even) { background: #f8f9fa; }
+                        .ambiente-detalle { margin: 20px 0; padding: 20px; background: #f8f9fa; border-left: 5px solid #e8751a; border-radius: 4px; }
+                        .ambiente-nombre { font-weight: 700; font-size: 1.15em; color: #1a3a52; margin-bottom: 10px; }
+                        .ambiente-info { margin: 8px 0; font-size: 1em; }
+                        .badge { display: inline-block; padding: 6px 12px; border-radius: 4px; font-weight: 600; font-size: 0.95em; }
+                        .badge-alta { background: #e74c3c; color: white; }
+                        .badge-media { background: #f39c12; color: white; }
+                        .badge-baja { background: #27ae60; color: white; }
+                        .conclusion { background: #ecf0f1; padding: 30px; border-radius: 8px; margin: 40px 0; border-left: 5px solid #e8751a; }
+                        .conclusion h3 { margin-top: 0; color: #1a3a52; font-size: 1.3em; }
+                        .conclusion-resultado { background: white; padding: 20px; border-radius: 6px; margin: 15px 0; border-left: 4px solid ${recomendacionColor}; }
+                        .conclusion-texto { font-size: 1.05em; line-height: 1.6; margin: 15px 0; }
+                        .footer { text-align: center; color: #999; font-size: 0.95em; margin-top: 50px; border-top: 2px solid #ddd; padding-top: 30px; }
+                        .calificacion-badge { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 30px; border-radius: 8px; font-size: 1.2em; font-weight: 700; margin: 15px 0; }
+                        .nota-box { background: #fff3cd; border: 1px solid #ffc107; padding: 20px; border-radius: 6px; margin: 20px 0; }
+                        .nota-box strong { color: #856404; }
+                        .nota-box p { color: #856404; margin: 10px 0; line-height: 1.6; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>📊 Análisis de Oportunidad de Compra</h1>
+                        <p>Evaluación Profesional de Propiedad</p>
+                    </div>
+
+                    <div class="content">
+                        <h2 class="section-title">📍 Información de la Propiedad</h2>
+                        <div class="resumen">
+                            <div class="resumen-item">
+                                <span class="resumen-label">Cliente:</span>
+                                <span class="resumen-valor">${cliente}</span>
+                            </div>
+                            <div class="resumen-item">
+                                <span class="resumen-label">Tipo de Propiedad:</span>
+                                <span>${tipoPropiedad}</span>
+                            </div>
+                            <div class="resumen-item">
+                                <span class="resumen-label">Ubicación:</span>
+                                <span>${ubicacion}</span>
+                            </div>
+                            <div class="resumen-item">
+                                <span class="resumen-label">Precio de Compra:</span>
+                                <span class="resumen-valor">${formatearMoneda(precioCompra)}</span>
+                            </div>
+                            <div class="resumen-item">
+                                <span class="resumen-label">Superficie:</span>
+                                <span>${superficie} m²</span>
+                            </div>
+                        </div>
+
+                        <h2 class="section-title">📋 Resumen Ejecutivo</h2>
+                        <div class="resumen">
+                            <div class="resumen-item">
+                                <span class="resumen-label">Estado General:</span>
+                                <span>
+                                    ${calificacionPromedio >= 4 ? '✅ Buen estado' : calificacionPromedio >= 3 ? '⚠️ Estado regular' : '🔴 Requiere inversión importante'}
+                                </span>
+                            </div>
+                            <div class="resumen-item">
+                                <span class="resumen-label">Calificación Promedio de Ambientes:</span>
+                                <span class="resumen-valor">${calificacionPromedio}/5</span>
+                            </div>
+                            <div class="resumen-item">
+                                <span class="resumen-label">Calificación Global Asignada:</span>
+                                <span class="calificacion-badge">${ratingGlobal}/5</span>
+                            </div>
+                            <div class="resumen-item">
+                                <span class="resumen-label">Inversión Estimada en Remodelación:</span>
+                                <span class="resumen-valor">${formatearMoneda(costoFinal)}</span>
+                            </div>
+                            <div class="resumen-item">
+                                <span class="resumen-label">Inversión Total (Compra + Reforma):</span>
+                                <span class="resumen-valor">${formatearMoneda(precioCompra + costoFinal)}</span>
+                            </div>
+                            ${superficie > 0 ? `
+                            <div class="resumen-item">
+                                <span class="resumen-label">Costo Final por m²:</span>
+                                <span>${formatearMoneda((precioCompra + costoFinal) / superficie)}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+
+                        ${notaGlobal ? `
+                        <div class="nota-box">
+                            <strong>📝 Justificación de la Calificación Global:</strong>
+                            <p>${notaGlobal}</p>
+                        </div>
+                        ` : ''}
+
+                        <h2 class="section-title">🏠 Análisis Detallado por Ambientes</h2>
+                        ${ambientes.map(a => {
+                            const costo = calcularCosto(a.nombre, a.calificacion);
+                            const costoPromedio = Math.round((costo.min + costo.max) / 2);
+                            const costoFinal = a.costoCustom > 0 ? a.costoCustom : costoPromedio;
+                            let prioridad = 'Baja';
+                            let badge = 'badge-baja';
+                            if (a.calificacion <= 2) {
+                                prioridad = 'Alta';
+                                badge = 'badge-alta';
+                            } else if (a.calificacion === 3) {
+                                prioridad = 'Media';
+                                badge = 'badge-media';
+                            }
+                            
+                            return `
+                                <div class="ambiente-detalle">
+                                    <div class="ambiente-nombre">${a.nombre}</div>
+                                    <div class="ambiente-info">
+                                        <strong>Calificación:</strong> ${a.calificacion}/5 | 
+                                        <span class="badge ${badge}">${prioridad}</span>
+                                    </div>
+                                    <div class="ambiente-info"><strong>Inversión Estimada:</strong> ${formatearMoneda(costoFinal)}</div>
+                                    ${a.descripcion ? `<div class="ambiente-info"><strong>Estado/Problemas:</strong> ${a.descripcion}</div>` : ''}
+                                </div>
+                            `;
+                        }).join('')}
+
+                        <h2 class="section-title">📊 Resumen de Prioridades</h2>
+                        <table>
+                            <tr>
+                                <th>Nivel de Prioridad</th>
+                                <th>Cantidad de Ambientes</th>
+                                <th>Descripción</th>
+                            </tr>
+                            <tr>
+                                <td><span class="badge badge-alta">ALTA</span></td>
+                                <td><strong>${altaPrioridad}</strong></td>
+                                <td>Requieren intervención inmediata (Calificación 1-2)</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge badge-media">MEDIA</span></td>
+                                <td><strong>${mediaPrioridad}</strong></td>
+                                <td>Requieren reparaciones importantes (Calificación 3)</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge badge-baja">BAJA</span></td>
+                                <td><strong>${bajaPrioridad}</strong></td>
+                                <td>Solo mantenimiento menor (Calificación 4-5)</td>
+                            </tr>
+                        </table>
+
+                        <h2 class="section-title">💰 Presupuesto de Remodelación</h2>
+                        <table>
+                            <tr>
+                                <th>Concepto</th>
+                                <th>Monto USD</th>
+                            </tr>
+                            <tr>
+                                <td><strong>Precio de Compra</strong></td>
+                                <td>${formatearMoneda(precioCompra)}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Inversión en Remodelación</strong></td>
+                                <td><strong>${formatearMoneda(costoFinal)}</strong></td>
+                            </tr>
+                            <tr style="background: #e8751a; color: white; font-weight: 700;">
+                                <td><strong>INVERSIÓN TOTAL</strong></td>
+                                <td><strong>${formatearMoneda(precioCompra + costoFinal)}</strong></td>
+                            </tr>
+                        </table>
+
+                        <div class="conclusion">
+                            <h3>✅ Análisis y Recomendación</h3>
+                            
+                            <div class="conclusion-resultado">
+                                <strong style="font-size: 1.2em; color: ${recomendacionColor};">${recomendacion}</strong>
+                                <p class="conclusion-texto">${recomendacionTexto}</p>
+                            </div>
+
+                            <h4 style="color: #1a3a52; margin-top: 25px; margin-bottom: 10px;">Consideraciones Importantes:</h4>
+                            <ul style="line-height: 1.8;">
+                                <li><strong>Análisis Preliminar:</strong> Este informe corresponde a una evaluación preliminar basada en observación directa de la propiedad.</li>
+                                <li><strong>Costos Orientativos:</strong> Los montos de inversión son estimativos. Se recomienda cotizar con profesionales especializados antes de tomar una decisión final.</li>
+                                <li><strong>Factores de Mercado:</strong> Este análisis no incluye factores macroeconómicos, tendencias de mercado inmobiliario o comparativas de precios en la zona.</li>
+                                <li><strong>Consulta Profesional:</strong> Se sugiere complementar este informe con asesoramiento de especialistas (arquitecto, contador, abogado especializado).</li>
+                            </ul>
+                        </div>
+
+                        <div class="footer">
+                            <p><strong>Informe Generado:</strong> ${new Date().toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                            <p><strong>Real Estate Consulting | Análisis Profesional de Propiedades</strong></p>
+                            <p style="margin-top: 15px; font-size: 0.9em;">Este documento es confidencial y fue preparado específicamente para ${cliente}.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            const opt = {
+                margin: 15,
+                filename: `informe_${ubicacion.replace(/\s/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+            };
+
+            html2pdf().set(opt).from(htmlPDF).save();
+        }
+
+        function exportarExcel() {
+            if (ambientes.length === 0) {
+                alert('Agrega ambientes para exportar');
+                return;
+            }
+
+            const tipoPropiedad = document.getElementById('tipoPropiedad').value;
+            const ubicacion = document.getElementById('ubicacion').value;
+            const precioCompra = parseFloat(document.getElementById('precioCompra').value) || 0;
+            const superficie = parseFloat(document.getElementById('superficie').value) || 0;
+            const clienteInterno = document.getElementById('clienteInterno').value;
+            const costoManual = parseFloat(document.getElementById('costoManual').value) || 0;
+            const costoAutomatico = parseFloat(document.getElementById('costoAutomatico').value) || 0;
+
+            const ws_data = [
+                ['EVALUACIÓN DE PROPIEDAD'],
+                [],
+                ['Tipo de Propiedad', tipoPropiedad],
+                ['Ubicación', ubicacion],
+                ['Cliente', clienteInterno],
+                ['Precio de Compra (USD)', precioCompra],
+                ['Superficie (m²)', superficie],
+                ['Calificación Global', ratingGlobal + '/5'],
+                ['Nota Global', document.getElementById('notaGlobal').value],
+                [],
+                ['DETALLE DE AMBIENTES'],
+                ['Ambiente', 'Calificación', 'Costo Estimado (USD)', 'Costo Personalizado (USD)', 'Costo Final (USD)', 'Observaciones'],
+                ...ambientes.map(a => {
+                    const costo = calcularCosto(a.nombre, a.calificacion);
+                    const costoPromedio = Math.round((costo.min + costo.max) / 2);
+                    const costoFinal = a.costoCustom > 0 ? a.costoCustom : costoPromedio;
+                    return [
+                        a.nombre,
+                        a.calificacion + '/5',
+                        costoPromedio,
+                        a.costoCustom || '',
+                        costoFinal,
+                        a.descripcion
+                    ];
+                }),
+                [],
+                ['RESUMEN FINANCIERO'],
+                ['Costo Automático Total (USD)', costoAutomatico],
+                ['Costo Manual/Personalizado (USD)', costoManual > 0 ? costoManual : '(No ingresado)'],
+                ['Costo Final a Usar (USD)', costoManual > 0 ? costoManual : costoAutomatico],
+                ['Precio Compra + Reforma (USD)', precioCompra + (costoManual > 0 ? costoManual : costoAutomatico)],
+                ['Costo por m² (USD)', superficie > 0 ? Math.round((costoManual > 0 ? costoManual : costoAutomatico) / superficie) : '']
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Evaluación');
+
+            XLSX.writeFile(wb, `evaluacion_${ubicacion.replace(/\s/g, '_')}_${new Date().toISOString().slice(0,10)}.xlsx`);
+        }
+
+        function guardarEnServidor() {
+            const cliente = document.getElementById('clienteInterno').value;
+            const ubicacion = document.getElementById('ubicacion').value;
+
+            if (!cliente || !ubicacion || ambientes.length === 0) {
+                alert('Completa los datos: Cliente, Ubicación y al menos un ambiente');
+                return;
+            }
+
+            // Generar PDF y Excel
+            const pdfElement = document.createElement('div');
+            const excelBuffer = XLSX.write(generarWorkbook(), { bookType: 'xlsx', type: 'array' });
+
+            alert('✅ Funcionalidad de guardado en servidor disponible cuando esté deployada.\n\nPor ahora puedes descargar el PDF e Excel directamente.');
+        }
+
+        function generarWorkbook() {
+            const tipoPropiedad = document.getElementById('tipoPropiedad').value;
+            const ubicacion = document.getElementById('ubicacion').value;
+            const precioCompra = parseFloat(document.getElementById('precioCompra').value) || 0;
+            const superficie = parseFloat(document.getElementById('superficie').value) || 0;
+            const clienteInterno = document.getElementById('clienteInterno').value;
+            const costoManual = parseFloat(document.getElementById('costoManual').value) || 0;
+            const costoAutomatico = parseFloat(document.getElementById('costoAutomatico').value) || 0;
+
+            const ws_data = [
+                ['EVALUACIÓN DE PROPIEDAD'],
+                [],
+                ['Tipo de Propiedad', tipoPropiedad],
+                ['Ubicación', ubicacion],
+                ['Cliente', clienteInterno],
+                ['Precio de Compra (USD)', precioCompra],
+                ['Superficie (m²)', superficie],
+                ['Calificación Global', ratingGlobal + '/5'],
+                [],
+                ['DETALLE DE AMBIENTES'],
+                ['Ambiente', 'Calificación', 'Costo Estimado (USD)', 'Costo Final (USD)', 'Observaciones'],
+                ...ambientes.map(a => {
+                    const costo = calcularCosto(a.nombre, a.calificacion);
+                    const costoPromedio = Math.round((costo.min + costo.max) / 2);
+                    const costoFinal = a.costoCustom > 0 ? a.costoCustom : costoPromedio;
+                    return [a.nombre, a.calificacion + '/5', costoPromedio, costoFinal, a.descripcion];
+                })
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Evaluación');
+            return wb;
+        }
+
+        function limpiarDatos() {
+            if (confirm('¿Eliminar todos los datos?')) {
+                ambientes = [];
+                idCounter = 0;
+                ratingGlobal = 0;
+                document.getElementById('tipoPropiedad').value = 'Departamento';
+                document.getElementById('ubicacion').value = '';
+                document.getElementById('precioCompra').value = '';
+                document.getElementById('superficie').value = '';
+                document.getElementById('clienteInterno').value = '';
+                document.getElementById('costoManual').value = '';
+                document.getElementById('notaGlobal').value = '';
+                for (let i = 1; i <= 5; i++) {
+                    const btn = document.getElementById(`ratingGlobal${i}`);
+                    if (btn) btn.classList.remove('active');
+                }
+                renderizar();
+            }
+        }
+
+        window.addEventListener('load', () => {
+            inicializar();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "name": "real-estate-evaluador-vercel",
+  "version": "1.0.0",
+  "description": "Sistema de evaluación de propiedades inmobiliarias - Vercel",
+  "main": "api/server.js",
+  "scripts": {
+    "dev": "node api/server.js",
+    "start": "node api/server.js",
+    "deploy": "vercel"
+  },
+  "keywords": ["real-estate", "evaluator"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "uuid": "^9.0.0",
+    "archiver": "^6.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
